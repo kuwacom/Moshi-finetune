@@ -40,13 +40,19 @@ def tokenize(
     alpha: float | None = None,
 ):
     """Tokenize the given string, accounting for new lines, potentially adding a BOS token."""
-    nl_piece = tokenizer.encode("\n")[-1]
+    nl_tokens = tokenizer.encode("\n")
+    if not nl_tokens:
+        nl_tokens = tokenizer.encode(" ")
+    nl_piece = nl_tokens[-1] if nl_tokens else tokenizer.eos_id()
     if alpha is not None:
         tokens = tokenizer.encode(
             text.split("\n"), enable_sampling=True, alpha=alpha, nbest_size=-1
         )
     else:
         tokens = tokenizer.encode(text.split("\n"))
+    tokens = [item for item in tokens if item]
+    if not tokens:
+        return [tokenizer.bos_id()] if bos else []
     tokens = reduce(lambda a, b: [*a, nl_piece, *b], tokens)
     if bos:
         tokens = [tokenizer.bos_id(), *tokens]
@@ -120,7 +126,12 @@ class Interleaver:
         # Tokenizes each word individually into a list of ints.
         out = []
         for word, ts, speaker in alignments:
-            toks = tokenize(self.tokenizer, word.strip(), bos=False)
+            word = word.strip()
+            if not word:
+                continue
+            toks = tokenize(self.tokenizer, word, bos=False)
+            if not toks:
+                continue
             out.append((toks, ts, speaker))
         return out
 

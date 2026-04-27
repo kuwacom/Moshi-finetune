@@ -115,8 +115,15 @@ def get_fsdp_model(
 
     if args.param_dtype == "bfloat16":
         param_dtype = torch.bfloat16
+    elif args.param_dtype == "float16":
+        param_dtype = torch.float16
     elif args.param_dtype == "float32":
         param_dtype = torch.float32
+    else:
+        raise ValueError(
+            f"Unsupported param_dtype: {args.param_dtype}. "
+            "Use one of: bfloat16, float16, float32."
+        )
 
     with torch.device("meta"):
         model = checkpointer_info.get_moshi(

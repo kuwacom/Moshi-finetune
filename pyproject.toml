@@ -8,6 +8,7 @@ dependencies = [
   "fire",
   "simple-parsing",
   "pyyaml",
+  "rich",
   "safetensors",
   "tensorboard",
   "tqdm",
@@ -25,6 +26,7 @@ dependencies = [
   "submitit",
   "llvmlite>=0.44",
   "numba>=0.61",
+  "openai",
 ]
 
 [project.optional-dependencies]
@@ -44,6 +46,7 @@ dev = [
 # The following fixes Pylance/VSCode not seeing the `finetune` package. See
 # https://github.com/astral-sh/uv/issues/3898
 config-settings = { editable_mode = "compat" }
+build-constraint-dependencies = ["setuptools==69.5.1"]
 
 [tool.setuptools]
 packages = ["finetune"]

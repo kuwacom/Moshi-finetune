@@ -56,7 +56,10 @@ def load_audio_paths(egs_path: Path) -> list[Path]:
     paths: list[Path] = []
     for line in lines:
         d = json.loads(line)
-        paths.append(Path(d["path"]))
+        path = Path(d["path"])
+        if not path.is_absolute():
+            path = egs_path.parent / path
+        paths.append(path)
     return paths
 
 
@@ -160,7 +163,11 @@ def run(params: "Params", shard: int = 0):
 
     logger.info("Loading all models.")
     device = torch.device(f"cuda:{local_rank}")
-    w_model = whisper.load_model(params.whisper_model, device=device)
+    w_model = whisper.load_model(
+        params.whisper_model,
+        device=device,
+        download_root=params.whisper_download_root,
+    )
 
     logger.info("Loading egs %s.", params.egs)
     paths = load_audio_paths(params.egs)
@@ -204,6 +211,7 @@ class Params:
     verbose: bool
     lang: str
     whisper_model: str
+    whisper_download_root: str | None
     keep_silence_in_segments: float
     rerun_errors: bool
     shards: int
@@ -227,6 +235,11 @@ def main():
         "--whisper_model",
         default="medium",
         help="Which whisper to use, use medium for stereo!",
+    )
+    parser.add_argument(
+        "--whisper_download_root",
+        default=None,
+        help="Directory where Whisper model checkpoints are stored.",
     )
     parser.add_argument(
         "--rerun_errors",
